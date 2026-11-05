@@ -1,0 +1,33 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'useradmin@drivergo.com';
+    }
+
+    match /drivers/{driverId} {
+      allow create: if request.auth != null
+        && request.auth.uid == driverId;
+
+      allow read: if isAdmin()
+        || (request.auth != null && request.auth.uid == driverId);
+
+      allow update: if isAdmin()
+        || (request.auth != null && request.auth.uid == driverId);
+
+      allow delete: if isAdmin()
+        || (request.auth != null && request.auth.uid == driverId);
+    }
+
+    match /trips/{tripId} {
+      allow create: if request.auth != null
+        && request.resource.data.driverId == request.auth.uid;
+      allow read: if request.auth != null
+        && resource.data.driverId == request.auth.uid;
+      allow update, delete: if request.auth != null
+        && resource.data.driverId == request.auth.uid;
+    }
+  }
+}

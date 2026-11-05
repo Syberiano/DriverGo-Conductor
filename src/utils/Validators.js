@@ -20,12 +20,22 @@ export const validatePhone = (phone) => {
 };
 
 export const validateDocument = (doc) => {
-  return /^\d{6,10}$/.test(doc);
+  return /^[a-zA-Z0-9]{6,20}$/.test(doc);
+};
+
+export const validateAlphanumeric = (value) => {
+  return /^[a-zA-Z0-9]{1,30}$/.test(value);
 };
 
 export const validateAge = (birthDateString) => {
-  const birthDate = new Date(birthDateString);
-  if (isNaN(birthDate.getTime())) return false;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDateString)) return false;
+  const [year, month, day] = birthDateString.split('-').map(Number);
+  const birthDate = new Date(year, month - 1, day);
+  if (
+    birthDate.getFullYear() !== year ||
+    birthDate.getMonth() !== month - 1 ||
+    birthDate.getDate() !== day
+  ) return false;
 
   const today = new Date();
   let age = today.getFullYear() - birthDate.getFullYear();

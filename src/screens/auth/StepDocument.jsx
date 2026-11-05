@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Switch } from 'react-native';
 import CustomInput from '../../components/common/CustomInput';
 import CustomButton from '../../components/common/CustomButton';
+import DateInput from '../../components/common/DateInput';
 import { COLORS, SIZES, FONTS } from '../../theme';
-import { validateEmail } from '../../utils/Validators';
+import { validateAlphanumeric, validateEmail } from '../../utils/Validators';
 
 export default function StepDocument({ onBack, onSubmit }) {
   const [documents, setDocuments] = useState({
@@ -19,7 +20,9 @@ export default function StepDocument({ onBack, onSubmit }) {
 
   const handleSubmit = () => {
     let newErrors = {};
-    if (!documents.licenseNumber.trim()) newErrors.licenseNumber = 'Número de licencia obligatorio';
+    if (!validateAlphanumeric(documents.licenseNumber)) {
+      newErrors.licenseNumber = 'La licencia solo permite letras y números';
+    }
     if (!documents.licenseExpiry.trim()) newErrors.licenseExpiry = 'Fecha de vencimiento obligatoria';
     if (!documents.soatExpiry.trim()) newErrors.soatExpiry = 'Fecha de SOAT obligatoria';
     if (!validateEmail(documents.mercadoPagoEmail)) newErrors.mercadoPagoEmail = 'Correo de Mercado Pago inválido';
@@ -40,28 +43,35 @@ export default function StepDocument({ onBack, onSubmit }) {
       <CustomInput
         placeholder="Número de Licencia de Conducción"
         value={documents.licenseNumber}
-        onChangeText={(text) => setDocuments({ ...documents, licenseNumber: text })}
+        onChangeText={(text) => setDocuments({
+          ...documents,
+          licenseNumber: text.replace(/[^a-zA-Z0-9]/g, '').toUpperCase(),
+        })}
         error={errors.licenseNumber}
+        autoCapitalize="characters"
       />
 
-      <CustomInput
+      <DateInput
         placeholder="Vencimiento Licencia (AAAA-MM-DD)"
         value={documents.licenseExpiry}
         onChangeText={(text) => setDocuments({ ...documents, licenseExpiry: text })}
         error={errors.licenseExpiry}
+        minimumDate={new Date()}
       />
 
-      <CustomInput
+      <DateInput
         placeholder="Vencimiento SOAT (AAAA-MM-DD)"
         value={documents.soatExpiry}
         onChangeText={(text) => setDocuments({ ...documents, soatExpiry: text })}
         error={errors.soatExpiry}
+        minimumDate={new Date()}
       />
 
-      <CustomInput
+      <DateInput
         placeholder="Vencimiento Tecno-mecánica (Si aplica)"
         value={documents.techReviewExpiry}
         onChangeText={(text) => setDocuments({ ...documents, techReviewExpiry: text })}
+        minimumDate={new Date()}
       />
 
       <CustomInput

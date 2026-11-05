@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Alert, ActivityIndicator } from 'react-native';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { createUserWithEmailAndPassword, deleteUser } from 'firebase/auth';
+import { doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 
-import { auth, db } from '../config/fireBase';
+import { auth, db } from '../config/firebase';
 
 import StepPersonal from './auth/StepPersonal';
 import StepVehicle from './auth/StepVehicle';
 import StepDocument from './auth/StepDocument';
 import { COLORS } from '../theme';
 
-export default function RegisterScreen({ navigation }) {
-  const [currentStep, setCurrentStep] = useState(1);
+export default function RegisterScreen({ navigation, route }) {
+  const vehicleOnly = route?.params?.vehicleOnly === true;
+  const [currentStep, setCurrentStep] = useState(vehicleOnly ? 2 : 1);
   const [loading, setLoading] = useState(false);
 
   const [registrationData, setRegistrationData] = useState({
@@ -55,15 +57,44 @@ export default function RegisterScreen({ navigation }) {
 
   const handleFinalSubmit = async (documentValues) => {
     const finalData = { ...registrationData, ...documentValues };
+    let createdUser = null;
     setLoading(true);
 
     try {
+      if (vehicleOnly) {
+        if (!auth.currentUser) {
+          throw new Error('No hay una sesión autenticada para completar el registro.');
+        }
+        await updateDoc(doc(db, 'drivers', auth.currentUser.uid), {
+          vehicle: {
+            brand: finalData.brand,
+            model: finalData.model,
+            year: finalData.year,
+            plate: finalData.plate,
+            color: finalData.color,
+          },
+          documents: {
+            licenseNumber: finalData.licenseNumber,
+            licenseExpiry: finalData.licenseExpiry,
+            soatExpiry: finalData.soatExpiry,
+            techReviewExpiry: finalData.techReviewExpiry || 'N/A',
+            mercadoPagoEmail: finalData.mercadoPagoEmail,
+          },
+          updatedAt: serverTimestamp(),
+        });
+        Alert.alert('Registro completado', 'La información de tu vehículo fue guardada correctamente.', [
+          { text: 'Entendido', onPress: () => navigation.goBack() },
+        ]);
+        return;
+      }
+
       const userCredential = await createUserWithEmailAndPassword(
-        auth, 
-        finalData.email, 
+        auth,
+        finalData.email,
         'DriverGo2026*'
       );
       const user = userCredential.user;
+      createdUser = user;
 
       await setDoc(doc(db, 'drivers', user.uid), {
         uid: user.uid,
@@ -87,7 +118,7 @@ export default function RegisterScreen({ navigation }) {
           mercadoPagoEmail: finalData.mercadoPagoEmail,
         },
         status: 'pending',
-        createdAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
       });
 
       Alert.alert(
@@ -105,15 +136,31 @@ export default function RegisterScreen({ navigation }) {
         ]
       );
     } catch (error) {
-      console.error('Error al registrar conductor en Firebase:', error);
+      console.error('Error al registrar conductor:', error);
+      if (createdUser) {
+        try {
+          await deleteUser(createdUser);
+        } catch (rollbackError) {
+          console.error('No se pudo revertir la cuenta de Auth:', rollbackError);
+        }
+      }
+
       let errorMessage = 'Ocurrió un error al procesar tu registro.';
-      
+
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = 'El correo electrónico ingresado ya se encuentra registrado.';
       } else if (error.code === 'auth/invalid-email') {
         errorMessage = 'El formato del correo electrónico no es válido.';
       } else if (error.code === 'auth/weak-password') {
         errorMessage = 'La contraseña debe tener al menos 6 caracteres.';
+      } else if (error.code === 'auth/invalid-api-key') {
+        errorMessage = 'La configuración de Firebase contiene una API key inválida.';
+      } else if (error.code === 'permission-denied') {
+        errorMessage = 'Firebase rechazó el guardado. Revisa las reglas de Firestore.';
+      } else if (error.code === 'unavailable') {
+        errorMessage = 'No se pudo conectar con Firebase. Revisa tu conexión a internet.';
+      } else if (error.code === 'failed-precondition') {
+        errorMessage = 'Firestore no está habilitado o requiere una configuración adicional.';
       }
 
       Alert.alert('Error en el Registro', errorMessage);
@@ -131,7 +178,8 @@ export default function RegisterScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+      <View style={styles.container}>
       {currentStep === 1 && (
         <StepPersonal
           onNext={handlePersonalNext}
@@ -153,6 +201,24 @@ export default function RegisterScreen({ navigation }) {
           onSubmit={handleFinalSubmit}
         />
       )}
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+  },
+});

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import CustomButton from '../common/CustomButton';
 import { COLORS, SIZES, SHADOWS } from '../../theme';
 
-export default function TripRequestCard({ trip, onAccept, onReject }) {
+export default function TripRequestCard({ trip, onAccept, onReject, disabled = false }) {
   if (!trip) return null;
 
   return (
@@ -32,10 +32,10 @@ export default function TripRequestCard({ trip, onAccept, onReject }) {
 
       <View style={styles.buttonContainer}>
         <View style={styles.buttonWrapper}>
-          <CustomButton title="Rechazar" onPress={onReject} type="danger" />
+          <CustomButton title="Rechazar" onPress={onReject} type="danger" disabled={disabled} />
         </View>
         <View style={styles.buttonWrapper}>
-          <CustomButton title="Aceptar" onPress={onAccept} type="primary" />
+          <CustomButton title="Aceptar" onPress={onAccept} type="primary" disabled={disabled} />
         </View>
       </View>
     </View>
@@ -44,10 +44,7 @@ export default function TripRequestCard({ trip, onAccept, onReject }) {
 
 const styles = StyleSheet.create({
   card: {
-    position: 'absolute',
-    bottom: SIZES.spaceLg,
-    left: SIZES.spaceMd,
-    right: SIZES.spaceMd,
+    width: '100%',
     backgroundColor: COLORS.background,
     borderRadius: SIZES.radiusLg,
     padding: SIZES.spaceLg,
