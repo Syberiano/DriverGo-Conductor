@@ -20,7 +20,7 @@ export const validatePhone = (phone) => {
 };
 
 export const validateDocument = (doc) => {
-  return /^[a-zA-Z0-9]{6,20}$/.test(doc);
+  return /^\d{6,20}$/.test(doc);
 };
 
 export const validateAlphanumeric = (value) => {
@@ -47,9 +47,11 @@ export const validateAge = (birthDateString) => {
   return age >= 18;
 };
 
-export const validatePlate = (plate) => {
+export const validatePlate = (plate, vehicleType = 'car') => {
   if (!plate || typeof plate !== 'string') return false;
   const formattedPlate = plate.toUpperCase().trim();
-  const plateRegex = /^[A-Z]{3}\d{3}$/;
+  const plateRegex = vehicleType === 'moto'
+    ? /^[A-Z]{3}[0-9]{2}[A-Z]$/
+    : /^[A-Z]{3}[0-9]{3}$/;
   return plateRegex.test(formattedPlate);
 };

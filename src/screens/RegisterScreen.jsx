@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { createUserWithEmailAndPassword, deleteUser } from 'firebase/auth';
+import { createUserWithEmailAndPassword, deleteUser, signOut } from 'firebase/auth';
 import { doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 
 import { auth, db } from '../config/firebase';
@@ -10,6 +10,12 @@ import StepPersonal from './auth/StepPersonal';
 import StepVehicle from './auth/StepVehicle';
 import StepDocument from './auth/StepDocument';
 import { COLORS } from '../theme';
+
+const getDefaultTechReviewExpiry = () => {
+  const date = new Date();
+  date.setFullYear(date.getFullYear() + 1);
+  return date.toISOString().slice(0, 10);
+};
 
 export default function RegisterScreen({ navigation, route }) {
   const vehicleOnly = route?.params?.vehicleOnly === true;
@@ -26,13 +32,14 @@ export default function RegisterScreen({ navigation, route }) {
     brand: '',
     model: '',
     year: '',
+    vehicleType: 'car',
     plate: '',
     color: '',
     
     licenseNumber: '',
     licenseExpiry: '',
     soatExpiry: '',
-    techReviewExpiry: '',
+    techReviewExpiry: getDefaultTechReviewExpiry(),
     mercadoPagoEmail: '',
     termsAccepted: false,
   });
@@ -47,11 +54,21 @@ export default function RegisterScreen({ navigation, route }) {
     setCurrentStep(3);
   };
 
+  const handleVehicleTypeChange = () => {
+    setRegistrationData((prev) => ({
+      ...prev,
+      techReviewExpiry: getDefaultTechReviewExpiry(),
+    }));
+  };
+
   const handleVehicleBack = () => {
     setCurrentStep(1);
   };
 
-  const handleDocumentBack = () => {
+  const handleDocumentBack = (documentValues) => {
+    if (documentValues) {
+      setRegistrationData((prev) => ({ ...prev, ...documentValues }));
+    }
     setCurrentStep(2);
   };
 
@@ -67,6 +84,7 @@ export default function RegisterScreen({ navigation, route }) {
         }
         await updateDoc(doc(db, 'drivers', auth.currentUser.uid), {
           vehicle: {
+            vehicleType: finalData.vehicleType,
             brand: finalData.brand,
             model: finalData.model,
             year: finalData.year,
@@ -104,6 +122,7 @@ export default function RegisterScreen({ navigation, route }) {
         documentNumber: finalData.documentNumber,
         birthDate: finalData.birthDate,
         vehicle: {
+          vehicleType: finalData.vehicleType,
           brand: finalData.brand,
           model: finalData.model,
           year: finalData.year,
@@ -121,18 +140,13 @@ export default function RegisterScreen({ navigation, route }) {
         createdAt: serverTimestamp(),
       });
 
+      await signOut(auth);
+
       Alert.alert(
         '¡Registro Exitoso!',
         'Tus datos han sido registrados correctamente. Tu cuenta se encuentra en estado pendiente de aprobación.',
         [
-          {
-            text: 'Entendido',
-            onPress: () => {
-              if (navigation && navigation.navigate) {
-                navigation.navigate('Login');
-              }
-            },
-          },
+          { text: 'Entendido' },
         ]
       );
     } catch (error) {
@@ -179,7 +193,11 @@ export default function RegisterScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-      <View style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 12 : 0}
+      >
       {currentStep === 1 && (
         <StepPersonal
           onNext={handlePersonalNext}
@@ -191,6 +209,7 @@ export default function RegisterScreen({ navigation, route }) {
         <StepVehicle
           onBack={handleVehicleBack}
           onNext={handleVehicleNext}
+          onVehicleTypeChange={handleVehicleTypeChange}
           initialValues={registrationData}
         />
       )}
@@ -199,9 +218,10 @@ export default function RegisterScreen({ navigation, route }) {
         <StepDocument
           onBack={handleDocumentBack}
           onSubmit={handleFinalSubmit}
+          initialValues={registrationData}
         />
       )}
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

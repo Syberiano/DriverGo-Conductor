@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Switch } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import CustomInput from '../../components/common/CustomInput';
 import CustomButton from '../../components/common/CustomButton';
 import DateInput from '../../components/common/DateInput';
 import { COLORS, SIZES, FONTS } from '../../theme';
 import { validateAlphanumeric, validateEmail } from '../../utils/Validators';
 
-export default function StepDocument({ onBack, onSubmit }) {
+export default function StepDocument({ onBack, onSubmit, initialValues = {} }) {
   const [documents, setDocuments] = useState({
-    licenseNumber: '',
-    licenseExpiry: '',
-    soatExpiry: '',
-    techReviewExpiry: '',
-    mercadoPagoEmail: '',
+    licenseNumber: initialValues.licenseNumber || '',
+    licenseExpiry: initialValues.licenseExpiry || '',
+    soatExpiry: initialValues.soatExpiry || '',
+    techReviewExpiry: initialValues.techReviewExpiry || '',
+    mercadoPagoEmail: initialValues.mercadoPagoEmail || '',
     termsAccepted: false,
   });
 
@@ -37,7 +38,10 @@ export default function StepDocument({ onBack, onSubmit }) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Documentos y Pagos</Text>
+      <View style={styles.titleRow}>
+        <Ionicons name="document-text-outline" size={26} color={COLORS.primaryDark} />
+        <Text style={styles.title}>Documentos y Pagos</Text>
+      </View>
       <Text style={styles.subtitle}>Ningún dato bancario sensible se almacena en la app.</Text>
 
       <CustomInput
@@ -49,6 +53,8 @@ export default function StepDocument({ onBack, onSubmit }) {
         })}
         error={errors.licenseNumber}
         autoCapitalize="characters"
+        icon="id-card-outline"
+        ellipsizeMode="tail"
       />
 
       <DateInput
@@ -57,6 +63,7 @@ export default function StepDocument({ onBack, onSubmit }) {
         onChangeText={(text) => setDocuments({ ...documents, licenseExpiry: text })}
         error={errors.licenseExpiry}
         minimumDate={new Date()}
+        icon="calendar-outline"
       />
 
       <DateInput
@@ -71,7 +78,8 @@ export default function StepDocument({ onBack, onSubmit }) {
         placeholder="Vencimiento Tecno-mecánica (Si aplica)"
         value={documents.techReviewExpiry}
         onChangeText={(text) => setDocuments({ ...documents, techReviewExpiry: text })}
-        minimumDate={new Date()}
+        minimumDate={new Date(2000, 0, 1)}
+        icon="construct-outline"
       />
 
       <CustomInput
@@ -96,10 +104,10 @@ export default function StepDocument({ onBack, onSubmit }) {
 
       <View style={styles.buttonRow}>
         <View style={styles.buttonWrapper}>
-          <CustomButton title="Atrás" onPress={onBack} type="secondary" />
+          <CustomButton title="Atrás" onPress={() => onBack(documents)} type="secondary" />
         </View>
         <View style={styles.buttonWrapper}>
-          <CustomButton title="Enviar Registro" onPress={handleSubmit} type="primary" />
+          <CustomButton title="Enviar" onPress={handleSubmit} type="primary" />
         </View>
       </View>
     </ScrollView>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, TextInput, Text, StyleSheet, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES } from '../../theme';
 
 export default function CustomInput({
@@ -10,12 +11,17 @@ export default function CustomInput({
   keyboardType = 'default',
   error,
   autoCapitalize = 'none',
+  icon,
+  maxLength,
+  ellipsizeMode = 'tail',
+  numberOfLines = 1,
 }) {
   const [isVisible, setIsVisible] = useState(false);
 
   return (
     <View style={styles.container}>
       <View style={[styles.inputContainer, error && styles.inputError]}>
+        {icon && <Ionicons name={icon} size={20} color={COLORS.textSecondary} style={styles.inputIcon} />}
         <TextInput
           style={styles.input}
           placeholder={placeholder}
@@ -25,6 +31,9 @@ export default function CustomInput({
           secureTextEntry={secureTextEntry && !isVisible}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
+          maxLength={maxLength}
+          ellipsizeMode={ellipsizeMode}
+          numberOfLines={numberOfLines}
         />
         {secureTextEntry && (
           <Pressable
@@ -59,8 +68,11 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     padding: SIZES.spaceMd,
-    fontSize: SIZES.md,
+    fontSize: SIZES.sm,
     color: COLORS.textPrimary,
+  },
+  inputIcon: {
+    marginLeft: SIZES.spaceMd,
   },
   inputError: {
     borderColor: COLORS.borderError, // #C92A3E

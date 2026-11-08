@@ -1,15 +1,23 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
 import CustomInput from '../../components/common/CustomInput';
 import CustomButton from '../../components/common/CustomButton';
 import { COLORS, SIZES, FONTS } from '../../theme';
 import { validatePlate } from '../../utils/Validators';
 
-export default function StepVehicle({ onBack, onNext, initialValues = {} }) {
+export default function StepVehicle({
+  onBack,
+  onNext,
+  onVehicleTypeChange,
+  initialValues = {},
+}) {
   const [vehicleData, setVehicleData] = useState({
     brand: initialValues.brand || '',
     model: initialValues.model || '',
     year: initialValues.year || '',
+    vehicleType: initialValues.vehicleType || 'car',
     plate: initialValues.plate || '',
     color: initialValues.color || '',
   });
@@ -31,8 +39,10 @@ export default function StepVehicle({ onBack, onNext, initialValues = {} }) {
       newErrors.year = 'Ingrese un año válido (Ej: 2022)';
     }
 
-    if (!validatePlate(vehicleData.plate)) {
-      newErrors.plate = 'Placa inválida (Formato requerido: ABC123)';
+    if (!validatePlate(vehicleData.plate, vehicleData.vehicleType)) {
+      newErrors.plate = vehicleData.vehicleType === 'moto'
+        ? 'Placa inválida (Formato requerido: ABC12D)'
+        : 'Placa inválida (Formato requerido: ABC123)';
     }
 
     if (!vehicleData.color.trim()) {
@@ -48,8 +58,31 @@ export default function StepVehicle({ onBack, onNext, initialValues = {} }) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Información del Vehículo</Text>
+      <View style={styles.titleRow}>
+        <Ionicons name="car-outline" size={26} color={COLORS.primaryDark} />
+        <Text style={styles.title}>Información del Vehículo</Text>
+      </View>
       <Text style={styles.subtitle}>Paso 2 de 3: Ingrese los datos de su automóvil o moto</Text>
+
+      <View style={styles.pickerContainer}>
+        <Ionicons name="options-outline" size={20} color={COLORS.textSecondary} />
+        <Picker
+          selectedValue={vehicleData.vehicleType}
+          onValueChange={(vehicleType) => {
+            setVehicleData({
+              ...vehicleData,
+              vehicleType,
+              plate: '',
+            });
+            onVehicleTypeChange?.();
+          }}
+          style={styles.picker}
+        >
+          <Picker.Item label="Automóvil" value="car" />
+          <Picker.Item label="Motocicleta" value="moto" />
+          <Picker.Item label="Camioneta / SUV" value="suv" />
+        </Picker>
+      </View>
 
       <CustomInput
         placeholder="Marca (Ej: Chevrolet, Renault)"
@@ -78,9 +111,14 @@ export default function StepVehicle({ onBack, onNext, initialValues = {} }) {
       <CustomInput
         placeholder="Placa (Ej: ABC123)"
         value={vehicleData.plate}
-        onChangeText={(text) => setVehicleData({ ...vehicleData, plate: text.toUpperCase() })}
+        onChangeText={(text) => setVehicleData({
+          ...vehicleData,
+          plate: text.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 6),
+        })}
         error={errors.plate}
         autoCapitalize="characters"
+        maxLength={6}
+        icon="card-outline"
       />
 
       <CustomInput
@@ -114,6 +152,26 @@ const styles = StyleSheet.create({
     fontWeight: FONTS.fontWeightBold,
     color: COLORS.primaryDark,
     marginBottom: SIZES.spaceXs,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SIZES.spaceSm,
+    marginBottom: SIZES.spaceXs,
+  },
+  pickerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.surface,
+    borderRadius: SIZES.radiusMd,
+    paddingLeft: SIZES.spaceMd,
+    marginBottom: SIZES.spaceMd,
+  },
+  picker: {
+    flex: 1,
+    color: COLORS.textPrimary,
   },
   subtitle: {
     fontSize: SIZES.sm,

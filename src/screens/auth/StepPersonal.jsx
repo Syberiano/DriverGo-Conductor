@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import CustomInput from '../../components/common/CustomInput';
 import CustomButton from '../../components/common/CustomButton';
 import DateInput from '../../components/common/DateInput';
@@ -49,7 +50,10 @@ export default function StepPersonal({ onNext, initialValues = {} }) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Información Personal</Text>
+      <View style={styles.titleRow}>
+        <Ionicons name="person-circle-outline" size={26} color={COLORS.primaryDark} />
+        <Text style={styles.title}>Información Personal</Text>
+      </View>
       <Text style={styles.subtitle}>Paso 1 de 3: Ingrese sus datos para el registro de conductor</Text>
 
       <CustomInput
@@ -71,9 +75,14 @@ export default function StepPersonal({ onNext, initialValues = {} }) {
       <CustomInput
         placeholder="Número de celular (10 dígitos)"
         value={formData.phone}
-        onChangeText={(text) => setFormData({ ...formData, phone: text })}
+        onChangeText={(text) => setFormData({
+          ...formData,
+          phone: text.replace(/[^0-9]/g, '').slice(0, 10),
+        })}
         error={errors.phone}
-        keyboardType="phone-pad"
+        keyboardType="number-pad"
+        maxLength={10}
+        icon="call-outline"
       />
 
       <CustomInput
@@ -81,10 +90,11 @@ export default function StepPersonal({ onNext, initialValues = {} }) {
         value={formData.documentNumber}
         onChangeText={(text) => setFormData({
           ...formData,
-          documentNumber: text.replace(/[^a-zA-Z0-9]/g, '').toUpperCase(),
+          documentNumber: text.replace(/[^0-9]/g, ''),
         })}
         error={errors.documentNumber}
-        autoCapitalize="characters"
+        keyboardType="number-pad"
+        maxLength={20}
       />
 
       <DateInput
@@ -112,6 +122,12 @@ const styles = StyleSheet.create({
     fontSize: SIZES.xl,
     fontWeight: FONTS.fontWeightBold,
     color: COLORS.primaryDark,
+    marginBottom: SIZES.spaceXs,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SIZES.spaceSm,
     marginBottom: SIZES.spaceXs,
   },
   subtitle: {

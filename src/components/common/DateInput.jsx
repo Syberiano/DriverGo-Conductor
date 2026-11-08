@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { COLORS, SIZES } from '../../theme';
 
@@ -24,6 +25,7 @@ export default function DateInput({
   error,
   maximumDate,
   minimumDate,
+  icon = 'calendar-outline',
 }) {
   const [open, setOpen] = useState(false);
 
@@ -39,6 +41,7 @@ export default function DateInput({
         onPress={() => setOpen(true)}
         style={[styles.input, error && styles.inputError]}
       >
+        <Ionicons name={icon} size={20} color={COLORS.textSecondary} />
         <Text style={value ? styles.value : styles.placeholder}>
           {value || placeholder}
         </Text>
@@ -69,6 +72,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     padding: SIZES.spaceMd,
     borderRadius: SIZES.radiusMd,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SIZES.spaceSm,
   },
   inputError: {
     borderColor: COLORS.borderError,
