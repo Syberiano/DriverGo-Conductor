@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "DriverGo Conductor",
+    "slug": "drivergo-conductor",
+    "scheme": "drivergo-conductor",
+    "android": {
+      "package": "com.drivergo.conductor"
+    },
+    "version": "1.0.0",
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "plugins": [
+      "@react-native-community/datetimepicker"
+    ]
+  }
+}
