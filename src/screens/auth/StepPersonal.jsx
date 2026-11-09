@@ -5,7 +5,13 @@ import CustomInput from '../../components/common/CustomInput';
 import CustomButton from '../../components/common/CustomButton';
 import DateInput from '../../components/common/DateInput';
 import { COLORS, SIZES, FONTS } from '../../theme';
-import { validateEmail, validatePhone, validateDocument, validateAge } from '../../utils/Validators';
+import {
+  validateEmail,
+  validatePhone,
+  validateDocument,
+  validateAge,
+  validatePassword,
+} from '../../utils/Validators';
 
 export default function StepPersonal({ onNext, initialValues = {} }) {
   const [formData, setFormData] = useState({
@@ -14,6 +20,8 @@ export default function StepPersonal({ onNext, initialValues = {} }) {
     phone: initialValues.phone || '',
     documentNumber: initialValues.documentNumber || '',
     birthDate: initialValues.birthDate || '',
+    password: '',
+    confirmPassword: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -39,6 +47,14 @@ export default function StepPersonal({ onNext, initialValues = {} }) {
 
     if (!validateAge(formData.birthDate)) {
       newErrors.birthDate = 'Debe ser mayor de 18 años (Formato: AAAA-MM-DD)';
+    }
+
+    if (!validatePassword(formData.password)) {
+      newErrors.password = 'Use mínimo 8 caracteres, una letra y un número';
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Las contraseñas no coinciden';
     }
 
     setErrors(newErrors);
@@ -95,6 +111,26 @@ export default function StepPersonal({ onNext, initialValues = {} }) {
         error={errors.documentNumber}
         keyboardType="number-pad"
         maxLength={20}
+      />
+
+      <CustomInput
+        placeholder="Contraseña (mínimo 8 caracteres)"
+        value={formData.password}
+        onChangeText={(password) => setFormData({ ...formData, password })}
+        error={errors.password}
+        secureTextEntry
+        autoCapitalize="none"
+        icon="lock-closed-outline"
+      />
+
+      <CustomInput
+        placeholder="Confirmar contraseña"
+        value={formData.confirmPassword}
+        onChangeText={(confirmPassword) => setFormData({ ...formData, confirmPassword })}
+        error={errors.confirmPassword}
+        secureTextEntry
+        autoCapitalize="none"
+        icon="lock-closed-outline"
       />
 
       <DateInput

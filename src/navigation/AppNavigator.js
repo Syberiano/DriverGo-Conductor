@@ -6,7 +6,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthContext } from '../context/AuthContext';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
-import HomeScreen from '../screens/HomeScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import DriverTabs from './DriverTabs';
@@ -40,7 +39,7 @@ function AuthStack() {
   );
 }
 
-function MainStack({ driverStatus }) {
+function MainStack() {
   return (
     <Stack.Navigator
       screenOptions={{
@@ -82,7 +81,7 @@ export default function AppNavigator() {
       {user && isAdmin ? (
         <AdminTabs />
       ) : user ? (
-        <MainStack driverStatus={driverData?.status || 'pending'} />
+        <MainStack />
       ) : (
         <AuthStack />
       )}

@@ -19,6 +19,13 @@ export const validatePhone = (phone) => {
   return /^\d{10}$/.test(phone);
 };
 
+export const validatePassword = (password) => {
+  return typeof password === 'string'
+    && password.length >= 8
+    && /[A-Za-z]/.test(password)
+    && /\d/.test(password);
+};
+
 export const validateDocument = (doc) => {
   return /^\d{6,20}$/.test(doc);
 };

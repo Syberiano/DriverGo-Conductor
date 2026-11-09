@@ -109,7 +109,7 @@ export default function RegisterScreen({ navigation, route }) {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         finalData.email,
-        'DriverGo2026*'
+        finalData.password
       );
       const user = userCredential.user;
       createdUser = user;

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
 import AdminDriversScreen from '../screens/admin/AdminDriversScreen';
 import AdminProfileScreen from '../screens/admin/AdminProfileScreen';
@@ -9,9 +9,9 @@ import { COLORS } from '../theme';
 const Tab = createBottomTabNavigator();
 
 const ADMIN_ICONS = {
-  Inicio: '🏠',
-  Conductores: '👥',
-  Perfil: '👤',
+  Inicio: 'grid-outline',
+  Conductores: 'people-outline',
+  Perfil: 'person-outline',
 };
 
 export default function AdminTabs() {
@@ -27,17 +27,41 @@ export default function AdminTabs() {
       <Tab.Screen
         name="Inicio"
         component={AdminDashboardScreen}
-        options={{ tabBarIcon: ({ focused }) => <Text style={{ fontSize: focused ? 22 : 20 }}>{ADMIN_ICONS.Inicio}</Text> }}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              name={ADMIN_ICONS.Inicio}
+              size={focused ? 24 : 22}
+              color={focused ? COLORS.primary : COLORS.textSecondary}
+            />
+          ),
+        }}
       />
       <Tab.Screen
         name="Conductores"
         component={AdminDriversScreen}
-        options={{ tabBarIcon: ({ focused }) => <Text style={{ fontSize: focused ? 22 : 20 }}>{ADMIN_ICONS.Conductores}</Text> }}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              name={ADMIN_ICONS.Conductores}
+              size={focused ? 24 : 22}
+              color={focused ? COLORS.primary : COLORS.textSecondary}
+            />
+          ),
+        }}
       />
       <Tab.Screen
         name="Perfil"
         component={AdminProfileScreen}
-        options={{ tabBarIcon: ({ focused }) => <Text style={{ fontSize: focused ? 22 : 20 }}>{ADMIN_ICONS.Perfil}</Text> }}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              name={ADMIN_ICONS.Perfil}
+              size={focused ? 24 : 22}
+              color={focused ? COLORS.primary : COLORS.textSecondary}
+            />
+          ),
+        }}
       />
     </Tab.Navigator>
   );

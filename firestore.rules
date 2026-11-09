@@ -9,25 +9,77 @@ service cloud.firestore {
 
     match /drivers/{driverId} {
       allow create: if request.auth != null
-        && request.auth.uid == driverId;
+        && request.auth.uid == driverId
+        && request.resource.data.uid == driverId
+        && request.resource.data.status == 'pending';
 
       allow read: if isAdmin()
         || (request.auth != null && request.auth.uid == driverId);
 
       allow update: if isAdmin()
-        || (request.auth != null && request.auth.uid == driverId);
+        || (
+          request.auth != null
+          && request.auth.uid == driverId
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'fullName',
+            'phone',
+            'vehicle',
+            'documents',
+            'isOnline',
+            'status',
+            'changeRequest',
+            'updatedAt'
+          ])
+          && (
+            request.resource.data.status == resource.data.status
+            || (
+              resource.data.status == 'approved'
+              && request.resource.data.status == 'pending'
+            )
+          )
+        );
 
       allow delete: if isAdmin()
         || (request.auth != null && request.auth.uid == driverId);
     }
 
     match /trips/{tripId} {
-      allow create: if request.auth != null
-        && request.resource.data.driverId == request.auth.uid;
-      allow read: if request.auth != null
-        && resource.data.driverId == request.auth.uid;
-      allow update, delete: if request.auth != null
-        && resource.data.driverId == request.auth.uid;
+      allow create: if isAdmin()
+        || (
+          request.auth != null
+          && request.resource.data.driverId == request.auth.uid
+        );
+      allow read: if isAdmin()
+        || (
+          request.auth != null
+          && (
+            resource.data.driverId == request.auth.uid
+            || (
+              resource.data.status == 'pending'
+              && resource.data.targetDriverId == request.auth.uid
+            )
+          )
+        );
+      allow update: if isAdmin()
+        || (
+          request.auth != null
+          && resource.data.driverId == request.auth.uid
+          && request.resource.data.driverId == request.auth.uid
+        )
+        || (
+          request.auth != null
+          && resource.data.status == 'pending'
+          && resource.data.targetDriverId == request.auth.uid
+          && request.resource.data.driverId == request.auth.uid
+          && request.resource.data.status in ['accepted', 'rejected']
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'driverId',
+            'status',
+            'actionAt',
+            'updatedAt'
+          ])
+        );
+      allow delete: if isAdmin();
     }
   }
 }
